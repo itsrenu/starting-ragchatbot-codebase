@@ -5,7 +5,7 @@ const API_URL = '/api';
 let currentSessionId = null;
 
 // DOM elements
-let chatMessages, chatInput, sendButton, totalCourses, courseTitles;
+let chatMessages, chatInput, sendButton, totalCourses, courseTitles, newChatButton;
 
 // Initialize
 document.addEventListener('DOMContentLoaded', () => {
@@ -15,6 +15,7 @@ document.addEventListener('DOMContentLoaded', () => {
     sendButton = document.getElementById('sendButton');
     totalCourses = document.getElementById('totalCourses');
     courseTitles = document.getElementById('courseTitles');
+    newChatButton = document.getElementById('newChatButton');
     
     setupEventListeners();
     createNewSession();
@@ -29,6 +30,8 @@ function setupEventListeners() {
         if (e.key === 'Enter') sendMessage();
     });
     
+    // New chat button
+    newChatButton.addEventListener('click', clearChat);
     
     // Suggested questions
     document.querySelectorAll('.suggested-item').forEach(button => {
@@ -122,10 +125,34 @@ function addMessage(content, type, sources = null, isWelcome = false) {
     let html = `<div class="message-content">${displayContent}</div>`;
     
     if (sources && sources.length > 0) {
+        // Build sources HTML with clickable links
+        const sourcesHtml = sources.map(source => {
+            if (typeof source === 'object' && source.link) {
+                // Create clickable link that opens in new tab with inline styles for visibility
+                return `<a href="${source.link}" target="_blank" class="source-link" style="color: white !important; background: linear-gradient(135deg, #3b82f6, #1d4ed8) !important; text-decoration: none !important; padding: 4px 8px !important; border-radius: 4px !important; border: 1px solid #2563eb !important; display: inline-block !important; margin: 2px !important; font-weight: 600 !important;">${source.text}</a>`;
+            } else if (typeof source === 'string' && source.includes('<a href=')) {
+                // Handle HTML link strings from the API - extract and restyle them
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(source, 'text/html');
+                const linkEl = doc.querySelector('a');
+                if (linkEl) {
+                    const href = linkEl.getAttribute('href');
+                    const text = linkEl.textContent;
+                    return `<a href="${href}" target="_blank" class="source-link" style="color: white !important; background: linear-gradient(135deg, #3b82f6, #1d4ed8) !important; text-decoration: none !important; padding: 4px 8px !important; border-radius: 4px !important; border: 1px solid #2563eb !important; display: inline-block !important; margin: 2px !important; font-weight: 600 !important;">${text}</a>`;
+                } else {
+                    return `<span class="source-text" style="color: #94a3b8; padding: 4px 8px; border-radius: 4px; background-color: rgba(255, 255, 255, 0.05); display: inline-block; margin: 2px;">${source}</span>`;
+                }
+            } else {
+                // Handle plain text sources
+                const text = typeof source === 'object' ? source.text : source;
+                return `<span class="source-text" style="color: #94a3b8; padding: 4px 8px; border-radius: 4px; background-color: rgba(255, 255, 255, 0.05); display: inline-block; margin: 2px;">${text}</span>`;
+            }
+        }).join(', ');
+        
         html += `
             <details class="sources-collapsible">
                 <summary class="sources-header">Sources</summary>
-                <div class="sources-content">${sources.join(', ')}</div>
+                <div class="sources-content">${sourcesHtml}</div>
             </details>
         `;
     }
@@ -150,6 +177,23 @@ async function createNewSession() {
     currentSessionId = null;
     chatMessages.innerHTML = '';
     addMessage('Welcome to the Course Materials Assistant! I can help you with questions about courses, lessons and specific content. What would you like to know?', 'assistant', null, true);
+}
+
+function clearChat() {
+    // Clear the current session
+    currentSessionId = null;
+    
+    // Clear the chat messages
+    chatMessages.innerHTML = '';
+    
+    // Add welcome message
+    addMessage('Welcome to the Course Materials Assistant! I can help you with questions about courses, lessons and specific content. What would you like to know?', 'assistant', null, true);
+    
+    // Clear any input
+    chatInput.value = '';
+    
+    // Focus on input
+    chatInput.focus();
 }
 
 // Load course statistics

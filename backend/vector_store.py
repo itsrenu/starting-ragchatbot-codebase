@@ -95,7 +95,10 @@ class VectorStore:
                 n_results=search_limit,
                 where=filter_dict
             )
-            return SearchResults.from_chroma(results)
+            
+            # Enhance results with lesson links
+            enhanced_results = self._add_lesson_links_to_results(results)
+            return SearchResults.from_chroma(enhanced_results)
         except Exception as e:
             return SearchResults.empty(f"Search error: {str(e)}")
     
@@ -245,6 +248,52 @@ class VectorStore:
         except Exception as e:
             print(f"Error getting course link: {e}")
             return None
+    
+    def _add_lesson_links_to_results(self, results: Dict) -> Dict:
+        """Enhance search results with lesson links from course catalog"""
+        import json
+        
+        if not results.get('metadatas') or not results['metadatas'][0]:
+            return results
+        
+        # Enhanced metadata with lesson links
+        enhanced_metadatas = []
+        
+        for metadata in results['metadatas'][0]:
+            enhanced_meta = metadata.copy()
+            course_title = metadata.get('course_title')
+            lesson_number = metadata.get('lesson_number')
+            
+            if course_title and lesson_number is not None:
+                # Get course catalog entry for this course
+                try:
+                    course_results = self.course_catalog.get(ids=[course_title])
+                    if course_results and 'metadatas' in course_results and course_results['metadatas']:
+                        course_meta = course_results['metadatas'][0]
+                        lessons_json = course_meta.get('lessons_json', '[]')
+                        lessons = json.loads(lessons_json)
+                        
+                        # Find the lesson with matching lesson_number
+                        lesson_link = None
+                        for lesson in lessons:
+                            if lesson.get('lesson_number') == lesson_number:
+                                lesson_link = lesson.get('lesson_link')
+                                break
+                        
+                        # Add lesson link to metadata
+                        enhanced_meta['lesson_link'] = lesson_link
+                        
+                except Exception as e:
+                    print(f"Error retrieving lesson link for {course_title} lesson {lesson_number}: {e}")
+                    enhanced_meta['lesson_link'] = None
+            
+            enhanced_metadatas.append(enhanced_meta)
+        
+        # Update results with enhanced metadata
+        enhanced_results = results.copy()
+        enhanced_results['metadatas'] = [enhanced_metadatas]
+        
+        return enhanced_results
     
     def get_lesson_link(self, course_title: str, lesson_number: int) -> Optional[str]:
         """Get lesson link for a given course title and lesson number"""

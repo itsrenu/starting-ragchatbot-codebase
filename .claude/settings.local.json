@@ -1,0 +1,32 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(export PATH=\"$HOME/.local/bin:$PATH\")",
+      "Bash(./run.sh)",
+      "Bash(python3:*)",
+      "Bash(node:*)",
+      "Bash(curl:*)",
+      "Bash(find:*)",
+      "Bash(grep:*)",
+      "Bash(mv:*)",
+      "Bash(lsof:*)",
+      "mcp__playwright__browser_navigate",
+      "mcp__playwright__browser_take_screenshot",
+      "mcp__playwright__browser_hover",
+      "mcp__playwright__browser_press_key",
+      "Bash(pkill:*)",
+      "Bash(cd:*)",
+      "Bash(python:*)",
+      "Bash(cd:*)",
+      "Bash(mkdir:*)",
+      "Bash(uv add:*)",
+      "Bash(cd:*)",
+      "Bash(cd:*)",
+      "Bash(cd:*)",
+      "Bash(uv run:*)",
+      "Bash(cat:*)",
+      "Bash(git add:*)"
+    ],
+    "deny": []
+  }
+}

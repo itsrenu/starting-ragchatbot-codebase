@@ -40,10 +40,15 @@ class QueryRequest(BaseModel):
     query: str
     session_id: Optional[str] = None
 
+class Source(BaseModel):
+    """Source with optional lesson link"""
+    text: str
+    link: Optional[str] = None
+
 class QueryResponse(BaseModel):
     """Response model for course queries"""
     answer: str
-    sources: List[str]
+    sources: List[Source]
     session_id: str
 
 class CourseStats(BaseModel):
@@ -63,7 +68,17 @@ async def query_documents(request: QueryRequest):
             session_id = rag_system.session_manager.create_session()
         
         # Process query using RAG system
-        answer, sources = rag_system.query(request.query, session_id)
+        answer, raw_sources = rag_system.query(request.query, session_id)
+        
+        # Convert sources to Source objects
+        sources = []
+        for source in raw_sources:
+            if isinstance(source, dict):
+                # New format with text and link
+                sources.append(Source(text=source["text"], link=source.get("link")))
+            else:
+                # Legacy format - just text
+                sources.append(Source(text=str(source), link=None))
         
         return QueryResponse(
             answer=answer,
@@ -116,4 +131,4 @@ class DevStaticFiles(StaticFiles):
     
     
 # Serve static files for the frontend
-app.mount("/", StaticFiles(directory="../frontend", html=True), name="static")
+app.mount("/", DevStaticFiles(directory="../frontend", html=True), name="static")
