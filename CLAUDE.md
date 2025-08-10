@@ -9,6 +9,16 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - **Install dependencies**: `uv sync`
 - **Make run script executable**: `chmod +x run.sh`
 
+### Code Quality Tools
+- **Format code**: `./scripts/format.sh` (runs Black + isort)
+- **Lint code**: `./scripts/lint.sh` (runs flake8, Black check, isort check)
+- **Lint with types**: `./scripts/lint-with-mypy.sh` (includes mypy type checking - may show errors)
+- **Full quality check**: `./scripts/quality.sh` (format + lint + tests)
+- **Manual commands**:
+  - Format: `uv run black .` and `uv run isort .`
+  - Lint: `uv run flake8 backend/` (uses .flake8 config)
+  - Type check: `uv run mypy backend/` (uses mypy.ini config)
+
 ### Environment Setup
 - Create `.env` file in root with: `ANTHROPIC_API_KEY=your_anthropic_api_key_here`
 - Python 3.13+ required
