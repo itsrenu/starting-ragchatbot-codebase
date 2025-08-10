@@ -25,7 +25,9 @@
       "Bash(cd:*)",
       "Bash(uv run:*)",
       "Bash(cat:*)",
-      "Bash(git add:*)"
+      "Bash(git add:*)",
+      "Bash(git worktree:*)",
+      "Bash(rm:*)"
     ],
     "deny": []
   }
